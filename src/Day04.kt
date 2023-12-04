@@ -3,17 +3,16 @@ fun main() {
     val numberRegex = "\\d+".toRegex()
 
     fun getTotalMatches(line: String): Int {
-        val winningNumbersLine = line.substringAfter(":").substringBefore("|")
-        val mineNumbersLine = line.substringAfter("|")
+        val (_,winningNumbersLine,mineNumbersLine) = line.split(":","|")
         val winningNumbers = numberRegex.findAll(winningNumbersLine).map { it.value.toInt() }.toList()
         val mineNumbers = numberRegex.findAll(mineNumbersLine).map { it.value.toInt() }.toList()
-        return winningNumbers.intersect(mineNumbers.toSet()).size
+        return winningNumbers.count { it in mineNumbers }
     }
 
     fun part1(input: List<String>): Long {
         return input.sumOf { line ->
-            val common = getTotalMatches(line)
-            if (common == 0) 0 else 1L shl common - 1
+            val totalMatches = getTotalMatches(line)
+            if (totalMatches == 0) 0 else 1L shl totalMatches - 1
         }
     }
 
