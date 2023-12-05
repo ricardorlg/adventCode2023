@@ -24,3 +24,21 @@ fun String.safeSubstring(startIndex: Int, endIndex: Int): String {
     if (startIndex < 0 || endIndex > this.length) return ""
     return this.substring(startIndex, endIndex)
 }
+
+fun <A> List<String>.mapUntilEmpty(transform: (List<String>) -> A): List<A> {
+    return buildList {
+        var current = ArrayList<String>()
+        for (line in this@mapUntilEmpty) {
+            if (line.isEmpty()) {
+                add(transform(current))
+                current = ArrayList()
+                continue
+            } else {
+                current.add(line)
+            }
+        }
+        if (current.isNotEmpty()) {
+            add(transform(current))
+        }
+    }
+}
