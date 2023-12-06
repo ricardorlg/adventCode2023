@@ -2,6 +2,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.math.sqrt
 
 /**
  * Reads lines from the given input txt file.
@@ -41,6 +42,14 @@ fun <A> List<String>.mapUntilEmpty(transform: (List<String>) -> A): List<A> {
             add(transform(current))
         }
     }
+}
+
+fun solveQuadraticEquation(a: Long, b: Long, c: Long): Pair<Double, Double> {
+    val delta = b * b - 4 * a * c
+    val sqrtDelta = sqrt(delta.toDouble())
+    val x1 = (-b + sqrtDelta) / (2 * a)
+    val x2 = (-b - sqrtDelta) / (2 * a)
+    return Pair(x1, x2)
 }
 
 val numberRegex = "\\d+".toRegex()

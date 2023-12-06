@@ -1,3 +1,5 @@
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.system.measureTimeMillis
 
 fun main() {
@@ -7,21 +9,13 @@ fun main() {
         val recordDistance: Long,
     )
 
-    fun getTotalBeatRecordWays(data: List<Race>): Long {
-        return data.fold(1L){acc, race ->
-            val toysCardHoldingInterval = (1..race.time)
-            var count = 0L
-            var incrementFound = false
-            for (time in toysCardHoldingInterval) {
-                val carDistance = time * (race.time - time)
-                //if we already have found a beating record and on current time the car is not beating the record, we can stop
-                if (incrementFound && carDistance <= race.recordDistance) break
-                //if the car is not beating the record, we can skip this time
-                if (carDistance <= race.recordDistance) continue
-                incrementFound = true
-                count++
-            }
-            acc * count
+    fun countBeatingRecordOptions(data: List<Race>): Long {
+        return data.fold(1L) { acc, race ->
+            val (r1, r2) = solveQuadraticEquation(-1, race.time, -race.recordDistance)
+            val leftInterval = floor(r1).toLong() + 1
+            val rightInterval = ceil(r2).toLong() - 1
+            val total = rightInterval - leftInterval + 1
+            acc * total
         }
     }
 
@@ -31,7 +25,7 @@ fun main() {
             val distances = numberRegex.findAll(lines[1]).map { it.value.toLong() }.toList()
             times.zip(distances).map { Race(it.first, it.second) }
         }
-        return getTotalBeatRecordWays(data)
+        return countBeatingRecordOptions(data)
     }
 
     fun part2(input: List<String>): Long {
@@ -40,7 +34,7 @@ fun main() {
             val totalDistance = lines[1].replace(nonNumberRegex, "").toLong()
             Race(totalTime, totalDistance)
         }
-        return getTotalBeatRecordWays(data)
+        return countBeatingRecordOptions(data)
     }
 
 
