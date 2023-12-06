@@ -6,7 +6,7 @@ import kotlin.io.path.readLines
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String,day:String) = Path("src/data/$day/$name.txt").readLines()
+fun readInput(name: String, day: String) = Path("src/data/$day/$name.txt").readLines()
 
 /**
  * Converts string to md5 hash.
@@ -42,3 +42,6 @@ fun <A> List<String>.mapUntilEmpty(transform: (List<String>) -> A): List<A> {
         }
     }
 }
+
+val numberRegex = "\\d+".toRegex()
+val nonNumberRegex = "\\D+".toRegex()
