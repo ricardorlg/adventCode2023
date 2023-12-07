@@ -1,164 +1,129 @@
+import HandType.*
 import kotlin.time.measureTime
 
+enum class HandType(val value: Int) {
+    HIGH_CARD(1),
+    ONE_PAIR(2),
+    TWO_PAIR(3),
+    THREE_OF_A_KIND(4),
+    FULL_HOUSE(5),
+    FOUR_OF_A_KIND(6),
+    FIVE_OF_A_KIND(7)
+}
+
 fun main() {
-
-    val cardsValues = mapOf(
-        '2' to 1,
-        '3' to 2,
-        '4' to 3,
-        '5' to 4,
-        '6' to 5,
-        '7' to 6,
-        '8' to 7,
-        '9' to 8,
-        'T' to 9,
-        'J' to 10,
-        'Q' to 11,
-        'K' to 12,
-        'A' to 13,
-    )
-
-    val cardsValuesWithJoker = mapOf(
-        '2' to 2,
-        '3' to 3,
-        '4' to 4,
-        '5' to 5,
-        '6' to 6,
-        '7' to 7,
-        '8' to 8,
-        '9' to 9,
-        'T' to 10,
-        'J' to 1,
-        'Q' to 11,
-        'K' to 12,
-        'A' to 13,
-    )
-
     data class Hand(
         val cards: String,
         val bid: Long,
-        val hasJoker:Boolean = false
-    ) {
-        val freqMap by lazy { cards.groupingBy { it }.eachCount() }
-        val handType by lazy { if(hasJoker) getHandTypeWithJoker() else calculateHandType() }
+        val hasJoker: Boolean = false
+    ) : Comparable<Hand> {
+        val cardsValues = mapOf(
+            '2' to 1,
+            '3' to 2,
+            '4' to 3,
+            '5' to 4,
+            '6' to 5,
+            '7' to 6,
+            '8' to 7,
+            '9' to 8,
+            'T' to 9,
+            'J' to if (hasJoker) 0 else 10,
+            'Q' to 11,
+            'K' to 12,
+            'A' to 13,
+        )
 
-       private fun calculateHandType(): Int {
+        val cardsFrequencyWithJoker = cards.groupingBy { it }.eachCount()
+        val jokerCount = cardsFrequencyWithJoker['J'] ?: 0
+        val cardsFrequencyWithoutJoker = cardsFrequencyWithJoker.toMutableMap().apply { remove('J') }.toMap()
+        val handType by lazy { if (hasJoker) getHandTypeWithJoker() else getHandTypeWithoutJoker() }
+
+        private fun getHandTypeWithoutJoker(): HandType {
             return when {
-                freqMap.values.all { it == 1 } -> 1
-                freqMap.values.count { it == 1 } == 3 -> 2
-                freqMap.values.count { it == 2 } == 2 -> 3
-                freqMap.values.count { it == 1 } == 2 -> 4
-                freqMap.values.count { it == 3 } == 1 -> 5
-                freqMap.values.any { it == 4 } -> 6
-                else -> 7
+                cardsFrequencyWithJoker.values.all { it == 1 } -> HIGH_CARD
+                cardsFrequencyWithJoker.values.count { it == 1 } == 3 -> ONE_PAIR
+                cardsFrequencyWithJoker.values.count { it == 2 } == 2 -> TWO_PAIR
+                cardsFrequencyWithJoker.values.count { it == 1 } == 2 -> THREE_OF_A_KIND
+                cardsFrequencyWithJoker.values.count { it == 3 } == 1 -> FULL_HOUSE
+                cardsFrequencyWithJoker.values.any { it == 4 } -> FOUR_OF_A_KIND
+                else -> FIVE_OF_A_KIND
             }
         }
 
-       private fun getHandTypeWithJoker(): Int {
-            val jokerCount = freqMap['J'] ?: 0
-            if (jokerCount == 0) return calculateHandType()
+        private fun getHandTypeWithJoker(): HandType {
             return when (jokerCount) {
+                0 -> getHandTypeWithoutJoker()
                 1 -> {
                     when {
-                        freqMap.values.any { it == 4 } -> 7
-                        freqMap.values.count { it == 3 } == 1 -> 6
-                        freqMap.values.count { it == 2 } == 2 -> 5
-                        freqMap.values.count { it == 2 } == 1 -> 4
-                        else -> 2
+                        cardsFrequencyWithoutJoker.values.any { it == 4 } -> FIVE_OF_A_KIND
+                        cardsFrequencyWithoutJoker.values.count { it == 3 } == 1 -> FOUR_OF_A_KIND
+                        cardsFrequencyWithoutJoker.values.count { it == 2 } == 2 -> FULL_HOUSE
+                        cardsFrequencyWithoutJoker.values.count { it == 2 } == 1 -> THREE_OF_A_KIND
+                        else -> ONE_PAIR
                     }
                 }
-
                 2 -> {
                     when {
-                        freqMap.values.count { it == 3 } == 1 -> 7
-                        freqMap.values.count { it == 2 } == 1 -> 6
-                        else -> 4
+                        cardsFrequencyWithoutJoker.values.count { it == 3 } == 1 -> FIVE_OF_A_KIND
+                        cardsFrequencyWithoutJoker.values.count { it == 2 } == 1 -> FOUR_OF_A_KIND
+                        else -> THREE_OF_A_KIND
                     }
                 }
-
                 3 -> {
                     when {
-                        freqMap.values.count { it == 2 } == 1 -> 7
-                        else -> 6
+                        cardsFrequencyWithoutJoker.values.count { it == 2 } == 1 -> FIVE_OF_A_KIND
+                        else -> FOUR_OF_A_KIND
                     }
                 }
-
-                else -> 7
+                else -> FIVE_OF_A_KIND
             }
         }
 
-        fun getHandCardsScore(): Int {
-            return cards.map { cardsValues[it]!! }.sum()
-        }
+        override fun compareTo(other: Hand): Int {
+            return when {
+                handType > other.handType -> 1
+                handType < other.handType -> -1
+                else -> {
+                    val h1Cards = cards
+                    val h2Cards = other.cards
+                    h1Cards.indices.forEach {
+                        val h1CardValue = cardsValues[h1Cards[it]] ?: error("Invalid card value")
+                        val h2CardValue = cardsValues[h2Cards[it]] ?: error("Invalid card value")
+                        if (h1CardValue > h2CardValue) return 1
+                        if (h1CardValue < h2CardValue) return -1
+                    }
+                    return 0
+                }
+            }
 
-        fun getHandCardsScoreWithJoker(): Int {
-            return cards.map { cardsValuesWithJoker[it]!! }.sum()
         }
 
     }
 
-    fun parseHand(input: List<String>, withJoker:Boolean=false): List<Hand> {
+    fun parseHand(input: List<String>, withJoker: Boolean = false): List<Hand> {
         return input.map {
             val (cards, bid) = it.split(" ")
-            Hand(cards.trim(), bid.trim().toLong(),withJoker)
+            Hand(cards.trim(), bid.trim().toLong(), withJoker)
         }
     }
 
-    val comp = Comparator<Hand> { h1, h2 ->
-        val h1Cards = h1.cards
-        val h2Cards = h2.cards
-        h1Cards.indices.forEach {
-            val h1CardValue = cardsValues[h1Cards[it]]!!
-            val h2CardValue = cardsValues[h2Cards[it]]!!
-            if (h1CardValue > h2CardValue) return@Comparator 1
-            if (h1CardValue < h2CardValue) return@Comparator -1
-        }
-        return@Comparator 0
-    }
-
-    val compWithJoker = Comparator<Hand> { h1, h2 ->
-        val h1Cards = h1.cards
-        val h2Cards = h2.cards
-        h1Cards.indices.forEach {
-            val h1CardValue = cardsValuesWithJoker[h1Cards[it]]!!
-            val h2CardValue = cardsValuesWithJoker[h2Cards[it]]!!
-            if (h1CardValue > h2CardValue) return@Comparator 1
-            if (h1CardValue < h2CardValue) return@Comparator -1
-        }
-        return@Comparator 0
-    }
-
-
-    fun part1(input: List<String>): Long {
-        val hands = parseHand(input)
-        val total = hands.size
+    fun solve(input: List<String>, withJoker: Boolean = false): Long {
+        val hands = parseHand(input, withJoker)
         return hands
-            .sortedWith(compareByDescending<Hand> { it.handType }.thenDescending(comp))
+            .sorted()
             .foldIndexed(0L) { index, acc, hand ->
-                acc + hand.bid * (total - index)
-            }
-    }
-    fun part2(input: List<String>): Long {
-        val hands = parseHand(input,true)
-        val total = hands.size
-        return hands
-            .sortedWith(compareByDescending<Hand> {hand-> hand.handType }.thenDescending(compWithJoker))
-            .onEach(::println)
-            .foldIndexed(0L) { index, acc, hand ->
-                acc + hand.bid * (total - index)
+                acc + hand.bid * (index + 1)
             }
     }
 
     val testInput = readInput("day7_sample", "day7")
-    check(part1(testInput) == 6440L)
-    println("--------------")
-    println(part2(testInput))
-//    check(part2(testInput) == 71503L)
+    check(solve(testInput) == 6440L)
+    check(solve(testInput,true) == 5905L)
     val input = readInput("day7_input", "day7")
     measureTime {
-        part1(input).println()
+        solve(input).println()
     }.also { println("Part1 took $it") }
-//    measureTime {
-//        part2(input).println()
-//    }.also { println("Part2 took $it") }
+    measureTime {
+        solve(input,true).println()
+    }.also { println("Part2 took $it") }
 }
