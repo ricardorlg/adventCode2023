@@ -1,6 +1,8 @@
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 fun main() {
 
@@ -8,6 +10,7 @@ fun main() {
         val time: Long,
         val recordDistance: Long,
     )
+
 
     fun countBeatingRecordOptions(data: List<Race>): Long {
         return data.fold(1L) { acc, race ->
@@ -42,10 +45,10 @@ fun main() {
     check(part1(testInput) == 288L)
     check(part2(testInput) == 71503L)
     val input = readInput("day6_input", "day6")
-    measureTimeMillis {
+    measureTime {
         part1(input).println()
-    }.also { println("Part1 took ${it}ms") }
-    measureTimeMillis {
+    }.also { println("Part1 took $it") }
+    measureTime {
         part2(input).println()
-    }.also { println("Part2 took ${it}ms") }
+    }.also { println("Part2 took $it") }
 }
