@@ -65,7 +65,7 @@ fun findLCM(a: Long, b: Long): Long {
     return maxLcm
 }
 
-fun lcm(numbers: List<Long>) = numbers.reduce(::findLCM)
+fun List<Long>.lcm() = reduce(::findLCM)
 
 fun <T> Iterable<T>.toCircularSequence() = sequence { while (true) yieldAll(this@toCircularSequence) }
 

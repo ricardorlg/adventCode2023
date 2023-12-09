@@ -17,44 +17,47 @@ fun main() {
         val instructions = input[0].asIterable().toCircularSequence()
         val network = input.drop(2).associate { line ->
             val (label, leftNodeLabel, rightNodeLabel) = line.split("=", ",")
-                .map { it.trim().removePrefix("(").removeSuffix(")")}
+                .map { it.trim().removePrefix("(").removeSuffix(")") }
             label to NodeNeighbors(leftNodeLabel, rightNodeLabel)
         }
         return instructions to network
     }
 
-    fun part1(input: List<String>): Long {
-        val (instructions, network) = parseInput(input)
-        val instructionsIter = instructions.iterator()
-        var currentNodeLabel: String? = "AAA"
+    fun getPathLength(
+        network: Map<String, NodeNeighbors>,
+        startingNodeLabel: String,
+        instructions: Sequence<Char>,
+        endCondition: (String) -> Boolean
+    ): Long {
+        var currentNodeLabel: String? = startingNodeLabel
         var steps = 0L
-        while (currentNodeLabel != "ZZZ") {
-            val instruction = instructionsIter.next()
+        val instructionsIterator = instructions.iterator()
+        while (true) {
+            val instruction = instructionsIterator.next()
             currentNodeLabel = network[currentNodeLabel]?.getNodeNeighbourByDirection(instruction)
             steps++
+            if (endCondition(currentNodeLabel.orEmpty())) {
+                break
+            }
         }
         return steps
+    }
+
+    fun part1(input: List<String>): Long {
+        val (instructions, network) = parseInput(input)
+        return getPathLength(network, "AAA", instructions) { it == "ZZZ" }
     }
 
     fun part2(input: List<String>): Long {
         val (instructions, network) = parseInput(input)
         val startingNodes = network.keys.filter { it.endsWith("A") }
-        val stepsResults = mutableListOf<Long>()
-        startingNodes.forEach { ns ->
-            val instructionsIter = instructions.iterator()
-            var steps = 0L
-            var currentNode: String? = ns
-            while (true) {
-                val instruction = instructionsIter.next()
-                currentNode = network[currentNode]?.getNodeNeighbourByDirection(instruction)
-                steps++
-                if (currentNode.orEmpty().endsWith("Z")) {
-                    break
-                }
-            }
-            stepsResults.add(steps)
-        }
-        return lcm(stepsResults)
+        return startingNodes.map { node ->
+            getPathLength(
+                network = network,
+                startingNodeLabel = node,
+                instructions = instructions
+            ) { it.endsWith("Z") }
+        }.lcm()
     }
 
     val testInput = readInput("day8_sample", "day8")
