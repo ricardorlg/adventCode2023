@@ -33,7 +33,7 @@ fun main() {
             }
             next = currentDiffs
         }
-        return firstValues.foldRight(0) { acc, l -> acc - l }
+        return firstValues.reduceRight { actual, acc -> actual-acc }
     }
 
     fun solve(input: List<String>, isPart2: Boolean): Long {
