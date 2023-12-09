@@ -69,5 +69,5 @@ fun List<Long>.lcm() = reduce(::findLCM)
 
 fun <T> Iterable<T>.toCircularSequence() = sequence { while (true) yieldAll(this@toCircularSequence) }
 
-val numberRegex = "\\d+".toRegex()
+val numberRegex = "-?\\d+".toRegex()
 val nonNumberRegex = "\\D+".toRegex()
