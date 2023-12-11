@@ -1,66 +1,60 @@
+import kotlin.math.abs
+import kotlin.time.measureTimedValue
+
+
 fun main() {
 
-    fun expand(input: List<CharArray>): List<CharArray> {
-        val rowToFill = List(input[0].size) { '.' }
-        val rowsToDuplicate = mutableListOf<Int>()
-        val colsToDuplicate = mutableListOf<Int>()
-        for (i in input.indices) {
-            val row = input[i]
-            if (row.all { it == '.' }) {
-                rowsToDuplicate.add(i)
-            }
+    data class Pos2D(val row: Int, val col: Int) {
+        fun addOffset(rows: List<Int>, cols: List<Int>, multiplier: Int): Pos2D {
+            return Pos2D(
+                row + rows.count { row > it } * multiplier,
+                col + cols.count { col > it } * multiplier
+            )
         }
-        val newInput = input.toMutableList()
-        for (i in rowsToDuplicate) {
-            newInput.add(i + 1, rowToFill.toCharArray())
+
+        fun distanceTo(other: Pos2D): Long {
+            return abs(row.toLong() - other.row) + abs(col - other.col)
         }
-        for (j in newInput[0].indices) {
-            for (i in newInput.indices) {
-                if (newInput[i][j] != '.') {
-                    break
-                }
-                if (i == newInput.size - 1) {
-                    colsToDuplicate.add(j)
-                }
-            }
-        }
-        for (i in colsToDuplicate) {
-            for (j in newInput[0].indices) {
-                if (j == i + 1) {
-                    for (k in newInput.indices) {
-                        newInput[k] = newInput[k].toMutableList().apply { add(j, '.') }.toCharArray()
-                    }
-                }
-            }
-        }
-        return newInput
     }
 
-    fun part1(input: List<String>): Int {
-        val grid = expand(input.map { it.toCharArray() })
-        val galaxies = mutableListOf<Pair<Int, Int>>()
+
+    fun findGalaxies(grid: List<List<Char>>): List<Pos2D> {
+        val galaxies = mutableListOf<Pos2D>()
         for (i in grid.indices) {
             for (j in grid[0].indices) {
                 if (grid[i][j] == '#') {
-                    galaxies.add(Pair(i, j))
+                    galaxies.add(Pos2D(i, j))
                 }
             }
         }
+        return galaxies
+    }
 
-        return 0
+    fun solve(input: List<String>, multiplier: Int = 2): Long {
+        val grid = input.map { it.toList() }
+        val rowsToExpand = grid.indices.filter { !grid[it].contains('#') }
+        val colsToExpand = grid[0].indices.filter { col ->
+            grid.indices.all { row ->
+                grid[row][col] != '#'
+            }
+        }
+        return findGalaxies(grid).map {
+            it.addOffset(rowsToExpand, colsToExpand, multiplier - 1)
+        }.allCombinedPairs()
+            .sumOf { (a, b) ->
+                a.distanceTo(b)
+            }
     }
 
 
     val testP1Input = readInput("day11_sample", "day11")
-    part1(testP1Input)
-//    check(part1(testP1Input) == 8)
-//    check(part2(testP2Input) == 4)
-//    val input = readInput("day10_input", "day10")
-//    measureTimedValue {
-//        part1(input).println()
-//    }.also { println("Part1 response: ${it.value} took ${it.duration}") }
-//    measureTimedValue {
-//        part2(input).println()
-//    }.also { println("Part2 response: ${it.value} took ${it.duration}") }
-
+    check(solve(testP1Input) == 374L)
+    check(solve(testP1Input, 100) == 8410L)
+    val input = readInput("day11_input", "day11")
+    measureTimedValue {
+        solve(input).println()
+    }.also { println("Part1 response: ${it.value} took ${it.duration}") }
+    measureTimedValue {
+        solve(input, 1_000_000).println()
+    }.also { println("Part2 response: ${it.value} took ${it.duration}") }
 }

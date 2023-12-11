@@ -69,5 +69,15 @@ fun List<Long>.lcm() = reduce(::findLCM)
 
 fun <T> Iterable<T>.toCircularSequence() = sequence { while (true) yieldAll(this@toCircularSequence) }
 
+fun <T> List<T>.allCombinedPairs(): List<Pair<T, T>> {
+    val pairs = mutableListOf<Pair<T, T>>()
+    for (i in indices) {
+        for (j in i + 1 until size) {
+            pairs.add(this[i] to this[j])
+        }
+    }
+    return pairs
+}
+
 val numberRegex = "-?\\d+".toRegex()
 val nonNumberRegex = "\\D+".toRegex()

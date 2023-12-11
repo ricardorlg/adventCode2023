@@ -65,7 +65,7 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        val loop = getLoop(input).apply { addLast(first()) } //close the loop
+        val loop = getLoop(input).toMutableList().apply { add(first()) } //close the loop
         val p = loop.size
         val a = loop.zipWithNext { (x1, y1), (x2, y2) -> x1 * y2 - y1 * x2 }.sum().absoluteValue / 2
         return a - p / 2 + 1
