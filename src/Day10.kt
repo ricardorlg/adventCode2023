@@ -3,7 +3,7 @@ import kotlin.time.measureTimedValue
 
 fun main() {
 
-    data class P2(val x: Int, val y: Int) : Comparable<P2> {
+    data class P2(val x: Int, val y: Int) {
         fun getNeighbors(c: Char): List<P2> {
             return when (c) {
                 '|' -> listOf(P2(x + 1, y), P2(x - 1, y))
@@ -17,28 +17,18 @@ fun main() {
                 else -> throw Exception("Unknown char $c")
             }
         }
-
-        override fun compareTo(other: P2): Int {
-            return if (x == other.x) {
-                y.compareTo(other.y)
-            } else {
-                x.compareTo(other.x)
-            }
-        }
-
     }
 
-    fun getPath(next: P2, startingPoint: P2, adj: Map<P2, List<P2>>): Set<P2> {
+    fun P2.getPath(startingPoint: P2, adj: Map<P2, List<P2>>): Set<P2> {
         val path = mutableSetOf(startingPoint)
-        var current = next
+        var current = this
         while (true) {
             val pointNeighbours = adj.getOrDefault(current, emptyList())
             val nextPoint = pointNeighbours.firstOrNull { !path.contains(it) }
+            path.add(current)
             if (nextPoint == null) {
-                path.add(current)
                 break
             }
-            path.add(current)
             current = nextPoint
         }
         return path
@@ -63,14 +53,10 @@ fun main() {
         }
         require(startingPoint != null)
         return adj[startingPoint]
+            ?.first { input[it.x][it.y] != '.' }
+            ?.getPath(startingPoint, adj)
+            ?.toList()
             .orEmpty()
-            .map { getPath(it, startingPoint, adj)
-        }.groupBy { it.size }
-            .filter { it.value.size == 2 }
-            .maxBy { it.key }
-            .value
-            .first()
-            .toList()
     }
 
     fun part1(input: List<String>): Int {
