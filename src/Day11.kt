@@ -52,7 +52,7 @@ fun main() {
     check(solve(testP1Input, 100) == 8410L)
     val input = readInput("day11_input", "day11")
     measureTimedValue {
-        solve(input).println()
+        solve(input)
     }.also { println("Part1 response: ${it.value} took ${it.duration}") }
     measureTimedValue {
         solve(input, 1_000_000).println()

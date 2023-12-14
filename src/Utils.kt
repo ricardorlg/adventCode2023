@@ -2,12 +2,14 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.io.path.readText
 import kotlin.math.sqrt
 
 /**
  * Reads lines from the given input txt file.
  */
 fun readInput(name: String, day: String) = Path("src/data/$day/$name.txt").readLines()
+fun readInputString(name: String, day: String) = Path("src/data/$day/$name.txt").readText()
 
 /**
  * Converts string to md5 hash.
@@ -78,6 +80,22 @@ fun <T> List<T>.allCombinedPairs(): List<Pair<T, T>> {
     }
     return pairs
 }
+
+fun List<String>.transpose(): List<String> {
+    val transposed = mutableListOf<String>()
+    for (i in first().indices) {
+        transposed.add(map { it[i] }.joinToString(""))
+    }
+    return transposed
+}
+
+infix fun List<String>.equalsByMinSize(b: List<String>): Boolean {
+    val size = kotlin.math.min(size, b.size)
+    return subList(0, size) == b.subList(0, size)
+}
+
+infix fun String.countDiffChars(other: String) = zip(other).count { (a, b) -> a != b }
+
 
 val numberRegex = "-?\\d+".toRegex()
 val nonNumberRegex = "\\D+".toRegex()
