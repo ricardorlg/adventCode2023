@@ -25,16 +25,24 @@ fun main() {
             .first { it.value.contains("S") }
             .let { Pos2D(it.index, it.value.indexOf("S")) }
 
-        val startingPoints = sourcePoint.cardinalNeighbors().filter { it.insideGrid(input) }
+        val response = mutableSetOf<Pos2D>()
+        val seen = mutableSetOf<Pos2D>()
+        val q = mutableListOf(sourcePoint to days)
 
-        return (2..days).fold(startingPoints to 2) { (points, _), _ ->
-            points
-                .flatMap { it.cardinalNeighbors() }
-                .filter {
-                    it.insideGrid(input)
-                }.distinct()
-                .let { it to it.size }
-        }.second.toLong()
+        while (q.isNotEmpty()) {
+            val (point, daysLeft) = q.removeFirst()
+            if (daysLeft % 2 == 0) response.add(point)
+            if (daysLeft == 0) continue
+            val neighbors = point
+                .cardinalNeighbors()
+                .filter { it.insideGrid(input) && it !in seen }
+                .map {
+                    seen.add(it)
+                    it to daysLeft - 1
+                }
+            q.addAll(neighbors)
+        }
+        return response.size.toLong()
     }
 
     /*
